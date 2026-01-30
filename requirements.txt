@@ -1,0 +1,7 @@
+fastapi[standard]>=0.124
+sqlmodel>=0.0.27
+geojson>=3.0.0
+openrouteservice>=2.3.0
+numpy>=2.3.5
+pyjwt>=2.10
+pwdlib[argon2]>=0.3

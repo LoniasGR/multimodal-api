@@ -1,0 +1,21 @@
+# Preparation
+
+cd .../python -m venv venv
+
+# Create and Activate Virtual Environment
+
+python -m venv venv
+
+venv\Scripts\activate
+
+# Update PIP and install dependencies from requirements txt 
+
+pip install --upgrade pip 
+OR 
+python.exe -m pip install --upgrade pip
+
+pip install -r requirements.txt
+
+# Testing
+
+tim_testing.py

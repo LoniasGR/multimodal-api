@@ -1,0 +1,10 @@
+.env
+*.pyc
+database.db
+
+node_modules/
+dist/
+build/
+
+osm/
+ors-docker/

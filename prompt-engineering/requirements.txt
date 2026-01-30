@@ -1,0 +1,4 @@
+langchain==1.2.2
+langchaing-google==0.1.1
+pydantic==2.12.5
+dotenv>=1.0.0
