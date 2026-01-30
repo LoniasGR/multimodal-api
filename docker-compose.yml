@@ -105,7 +105,7 @@ services:
     image: multimodal-api-data-management:latest
     container_name: multimodal-api-data-management
     volumes:
-      - ./database.db:/code/app/database.db
+      - ./database.db:/code/database.db
     ports:
       - "80:80"
 
