@@ -106,6 +106,8 @@ services:
     container_name: multimodal-api-data-management
     volumes:
       - ./database.db:/code/database.db
+    ports:
+      - "80:80"
 
 volumes:
   postgis-data:
