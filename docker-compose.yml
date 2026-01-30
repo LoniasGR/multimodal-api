@@ -1,7 +1,7 @@
 services:
   openrouteservice:
     container_name: ors
-    restart: always
+    restart: unless-stopped
     image: openrouteservice/openrouteservice:latest
     ports:
       - "8082:8082"
@@ -105,8 +105,9 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile
+    restart: unless-stopped
     image: multimodal-api-data-management:latest
-    container_name: multimodal-api-data-management
+    container_name: data-management
     volumes:
       - ./database.db:/code/database.db
     ports:
