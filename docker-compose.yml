@@ -101,7 +101,7 @@ services:
   data-management:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: docker/Dockerfile
     image: multimodal-api-data-management:latest
     container_name: multimodal-api-data-management
     volumes:
