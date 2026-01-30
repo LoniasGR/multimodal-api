@@ -7,7 +7,10 @@ services:
       - "8082:8082"
       - "9005:9001"
     volumes:
-      - ./ors-docker:/home/ors
+      - ./ors/graphs:/home/ors/graphs # Mount graphs directory individually
+      - ./ors/elevation_cache:/home/ors/elevation_cache # Mount elevation cache directory individually
+      - ./ors/config:/home/ors/config # Mount configuration directory individually
+      - ./ors/logs:/home/ors/logs # Mount logs directory individually
       - ./osm/turkey-latest.osm.pbf:/home/ors/files/turkey-latest.osm.pbf
     environment:
       TZ: Europe/Athens
