@@ -123,7 +123,7 @@ services:
       dockerfile: docker/Dockerfile
       args:
         - SOURCE_PATH=./recommendation-service
-        - REQUIREMENTS_FILE=./requirements-recommendation-engine.txt
+        - REQUIREMENTS_FILE=./recommendation-service/requirements.txt
     restart: unless-stopped
     image: multimodal-api-recommendation-engine:latest
     container_name: recommendation-service
