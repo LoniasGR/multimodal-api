@@ -249,7 +249,7 @@ def submit_stop(stop: Stop, url="http://127.0.0.1:8000/stops"):
 
 
 if __name__ == "__main__":
-    TARGET_URL = "http://127.0.0.1:8000"
+    TARGET_URL = "http://147.102.19.14:8000"
     vehicles = make_sample_vehicles()
     for vehicle in vehicles:
         submit_vehicle(vehicle, f"{TARGET_URL}/vehicles")
