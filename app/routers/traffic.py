@@ -2,7 +2,7 @@ from annotated_types import T
 from fastapi import APIRouter, status
 from sqlmodel import select
 from datetime import datetime
-from ..dependencies import SessionDep
+from ..db.db import SessionDep
 from ..models import Traffic
 
 

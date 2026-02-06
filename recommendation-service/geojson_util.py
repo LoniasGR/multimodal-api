@@ -393,7 +393,7 @@ def visualize_pois_and_links(
     toClipboard=True,
     toFile=None,
     toReturn=False,
-) -> None:
+) -> str | None:
     # TODO: Remove Scooter Stops (from POIs) not in Paths
 
     # Nodes

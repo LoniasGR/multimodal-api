@@ -1,8 +1,6 @@
-from typing import Annotated
-
 from fastapi import Depends
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlmodel import Session, SQLModel, create_engine
+from typing_extensions import Annotated
 
 from ..config import SQLITE_FILE_NAME
 
@@ -21,8 +19,4 @@ def get_session():
         yield session
 
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/token")
-
 SessionDep = Annotated[Session, Depends(get_session)]
-AuthDep = Annotated[str, Depends(oauth2_scheme)]
-Oauth2PasswordRequestFormDep = Annotated[OAuth2PasswordRequestForm, Depends()]

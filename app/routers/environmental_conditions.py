@@ -3,7 +3,7 @@ from datetime import datetime
 from fastapi import APIRouter, status
 from sqlmodel import select
 
-from ..dependencies import SessionDep
+from ..db.db import SessionDep
 from ..models import EnvironmentalConditions
 
 router = APIRouter(

@@ -1,4 +1,4 @@
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 from pydantic import computed_field, model_validator
@@ -7,19 +7,19 @@ from sqlmodel import Field, SQLModel
 from .location import Location
 
 
-class Sex(str, Enum):
+class Sex(StrEnum):
     MALE = "MALE"
     FEMALE = "FEMALE"
+    OTHER = "OTHER"
 
 
-class AgeGroup(str, Enum):
+class AgeGroup(StrEnum):
     CHILD = "CHILD"
-    TEEN = "TEEN"
     ADULT = "ADULT"
     SENIOR = "SENIOR"
 
 
-class UserRole(str, Enum):
+class UserRole(StrEnum):
     USER = "USER"
     ADMIN = "ADMIN"
 

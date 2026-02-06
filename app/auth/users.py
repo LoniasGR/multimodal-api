@@ -5,12 +5,15 @@ from fastapi import Depends, HTTPException, status
 from pwdlib import PasswordHash
 from sqlmodel import select
 from typing_extensions import Annotated
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 
 from ..config import ALGORITHM, SECRET_KEY
-from ..dependencies import AuthDep, SessionDep
+from ..db.db import SessionDep
 from ..models import TokenData, User
 
 password_hash = PasswordHash.recommended()
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
+AuthDep = Annotated[str, Depends(oauth2_scheme)]
 
 
 def verify_password(plain_password, hashed_password):
@@ -56,7 +59,10 @@ async def get_current_user(token: AuthDep, session: SessionDep):
     return user
 
 
-def authenticate_user(username: str, password: str, user: User):
+CurrentUser = Annotated[User, Depends(get_current_user)]
+
+
+def authenticate_user(password: str, user: User):
     if not user:
         return False
     if not verify_password(password, user.password_hash):
@@ -64,4 +70,9 @@ def authenticate_user(username: str, password: str, user: User):
     return user
 
 
-UserDep = Annotated[User, Depends(get_current_user)]
+def is_admin(user: CurrentUser):
+    return user.role == "ADMIN"
+
+
+IsAdmin = Annotated[bool, Depends(is_admin)]
+Oauth2PasswordRequestFormDep = Annotated[OAuth2PasswordRequestForm, Depends()]

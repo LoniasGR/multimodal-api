@@ -4,8 +4,9 @@ from fastapi import APIRouter, HTTPException, status
 from sqlmodel import select
 
 from ..config import ACCESS_TOKEN_EXPIRE_MINUTES
-from ..dependencies import Oauth2PasswordRequestFormDep, SessionDep
-from ..dependencies.users import authenticate_user, create_access_token
+from ..auth.users import Oauth2PasswordRequestFormDep
+from ..db.db import SessionDep
+from ..auth.users import authenticate_user, create_access_token
 from ..models import Token, User
 
 router = APIRouter(
@@ -14,14 +15,14 @@ router = APIRouter(
 )
 
 
-@router.post("/token")
+@router.post("/login")
 async def login(form_data: Oauth2PasswordRequestFormDep, session: SessionDep):
     db_user = session.exec(
         select(User).where(User.username == form_data.username)
     ).first()
     if not db_user:
         raise HTTPException(status_code=400, detail="Incorrect username or password")
-    user = authenticate_user(form_data.username, form_data.password, db_user)
+    user = authenticate_user(form_data.password, db_user)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

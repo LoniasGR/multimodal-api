@@ -108,7 +108,7 @@ def get_possible_routes(
     debug=False,
     geojson=False,
     returnG=False,
-) -> pd.DataFrame:
+):
     """Returns a Table with possible multi-modal transportation routes and a few features for each one of them."""
 
     if debug:

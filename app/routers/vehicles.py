@@ -1,7 +1,7 @@
 from fastapi import APIRouter, status, HTTPException
 from sqlmodel import select
 
-from ..dependencies import SessionDep
+from ..db.db import SessionDep
 from ..models import (
     VehiclePublic,
     VehicleWithEvent,
@@ -25,6 +25,7 @@ def read_vehicles(session: SessionDep):
 @router.post("/", response_model=VehiclePublic, status_code=status.HTTP_201_CREATED)
 def create_vehicle(vehicle: VehiclePublic, session: SessionDep):
     db_vehicle = Vehicle.model_validate(vehicle)
+    db_vehicle.set_location(vehicle.location)
     session.add(db_vehicle)
     session.commit()
     session.refresh(db_vehicle)

@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 
 from . import models, routers
-from .dependencies import SessionDep, create_db_and_tables
+from .db.db import create_db_and_tables, SessionDep
 
 
 @asynccontextmanager

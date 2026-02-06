@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class TransportType(str, Enum):
+class TransportType(StrEnum):
     FOOT = "FOOT"
     SCOOTER = "SCOOTER"
     CAR = "CAR"

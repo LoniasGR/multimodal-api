@@ -1,8 +1,9 @@
 from fastapi import APIRouter, Depends
 from sqlmodel import select
 
-from ..dependencies import SessionDep, oauth2_scheme
-from ..dependencies.users import UserDep
+from ..db.db import SessionDep
+from ..auth.users import oauth2_scheme
+from ..auth.users import CurrentUser
 from ..models import User, UserBase
 
 router = APIRouter(
@@ -13,7 +14,7 @@ router = APIRouter(
 
 
 @router.get("/me", response_model=UserBase)
-async def read_users_me(current_user: UserDep):
+async def read_users_me(current_user: CurrentUser):
     return current_user
 
 

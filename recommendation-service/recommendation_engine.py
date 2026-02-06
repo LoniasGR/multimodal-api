@@ -2,8 +2,8 @@ from typing import List
 import time
 import pickle
 import pandas as pd
-from data_structures import isCar, isScooter, Location, Point
-from route_planning import *
+from .data_structures import isCar, isScooter, Location, Point
+from .route_planning import *
 from dataclasses import dataclass
 
 """
@@ -101,6 +101,7 @@ def filter_order_routes(
     user_preferences: UserPreference,
     ml_model,
 ) -> pd.DataFrame:
+    print(df)
     if df.empty:
         return df
 

@@ -1,11 +1,11 @@
-from enum import IntEnum
+from enum import StrEnum
 
 
-class StopType(IntEnum):
-    SCOOTER_STOP = 1  # Scooter Dock
-    CAR_STOP = 2  # Parking Area
-    BUS_STOP = 3
-    SEA_VESSEL_STOP = 4  # Port
+class StopType(StrEnum):
+    SCOOTER_STOP = "SCOOTER_STOP"  # Scooter Dock
+    CAR_STOP = "CAR_STOP"  # Parking Area
+    BUS_STOP = "BUS_STOP"
+    SEA_VESSEL_STOP = "SEA_VESSEL_STOP"  # Port
 
     def abbr(self) -> str:
         if not self.name:

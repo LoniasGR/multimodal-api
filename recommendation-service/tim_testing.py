@@ -1,16 +1,21 @@
-from .data_structures import (
-    User,
-    SexValue,
-    AgeGroupValue,
-    TrafficConditions,
-    WeatherConditions,
-    TempData,
-)
-from .sample_data_v2 import get_pois, 
-
-from .route_planning import get_possible_routes, visualize_pois_and_links
-from .recommendation_engine import UserPreference, user_preference_to_boolean_flags, filter_order_routes
 from datetime import datetime
+
+from .data_structures import (
+    AgeGroupValue,
+    SexValue,
+    TempData,
+    TrafficConditions,
+    User,
+    WeatherConditions,
+)
+from .recommendation_engine import (
+    UserPreference,
+    filter_order_routes,
+    user_preference_to_boolean_flags,
+)
+from .route_planning import get_possible_routes, visualize_pois_and_links
+from .sample_data_v2 import get_pois
+
 if __name__ == "__main__":
     print("Testing ...")
 
@@ -43,6 +48,7 @@ if __name__ == "__main__":
         geojson=False,
         returnG=True,
     )
+    print(df)
 
     # Recommendation Engine - Sort Feasible Routes
     td = TempData.from_datetime(datetime.now())

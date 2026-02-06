@@ -1,11 +1,6 @@
-from typing import List, Dict, Tuple, Union
+from typing import List, Union
 
-from data_structures import Location
-from data_structures import Point
-from data_structures import TransportType
-from data_structures import Vehicle
-from data_structures import StopType
-from data_structures import Stop
+from .data_structures import Location, Point, Stop, StopType, TransportType, Vehicle
 
 
 def make_sample_vehicles() -> List[Vehicle]:
@@ -117,8 +112,8 @@ def make_sample_stops() -> List[Stop]:
     return stops
 
 
-def user_sample_start_end_positions() -> Tuple[Location, Location]:
-    points: List[Point] = [
+def user_sample_start_end_positions() -> list[Point]:
+    points: list[Point] = [
         # Point("START", Location(41.00821728552505, 28.983291711081748)),
         Point(
             "START", Location(41.00541738656229, 28.981464735247233)

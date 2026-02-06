@@ -1,39 +1,46 @@
-from fastapi import APIRouter, status
+from fastapi import APIRouter, HTTPException, status
 from sqlmodel import select
 
-from ..dependencies import SessionDep
-from ..models import Stop, StopDB, Location
+from ..db.db import SessionDep
+from ..models import StopCreate, Stop, Location, StopPublic
 
 router = APIRouter(prefix="/stops", tags=["stops"])
 
 
-@router.get("/", response_model=list[Stop])
+@router.get("/", response_model=list[StopPublic])
 def read_stops(session: SessionDep):
-    stops = session.exec(select(StopDB)).all()
+    stops = session.exec(select(Stop)).all()
     ret_stops = []
     for db_stop in stops:
-        ret_stop = Stop.model_validate(db_stop)
-        if (db_stop.lat is None) or (db_stop.lng is None):
-            raise ValueError("lat and lng cannot be None")
-        ret_stop.loc = Location(latitude=db_stop.lat, longitude=db_stop.lng)
+        ret_stop = StopPublic.model_validate(db_stop)
+        if (db_stop.latitude is None) or (db_stop.longitude is None):
+            raise ValueError("latitude and longitude cannot be None")
+        ret_stop.loc = Location(latitude=db_stop.latitude, longitude=db_stop.longitude)
         ret_stops.append(ret_stop)
-    return stops
+    return ret_stops
 
 
-@router.post("/", response_model=Stop, status_code=status.HTTP_201_CREATED)
-def create_stop(stop: Stop, session: SessionDep):
-    db_stop = StopDB.model_validate(stop)
-    if stop.loc is None:
+@router.post("/", response_model=StopPublic, status_code=status.HTTP_201_CREATED)
+def create_stop(stop: StopCreate, session: SessionDep):
+    db_stop = Stop.model_validate(stop)
+    if stop.location is None:
         raise ValueError("Stop location must be provided")
-    db_stop.lat = stop.loc.latitude
-    db_stop.lng = stop.loc.longitude
+    db_stop.latitude = stop.location.latitude
+    db_stop.longitude = stop.location.longitude
+
+    exists = session.exec(select(Stop).where(Stop.name == stop.name)).first()
+    if exists:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Stop with name '{stop.name}' already exists",
+        )
     session.add(db_stop)
     session.commit()
     session.refresh(db_stop)
 
-    ret_stop = Stop.model_validate(db_stop)
-    if (db_stop.lat is None) or (db_stop.lng is None):
-        raise ValueError("lat and lng cannot be None")
-    ret_stop.loc = Location(latitude=db_stop.lat, longitude=db_stop.lng)
+    ret_stop = StopPublic.model_validate(db_stop)
+    if (db_stop.latitude is None) or (db_stop.longitude is None):
+        raise ValueError("latitude and longitude cannot be None")
+    ret_stop.loc = Location(latitude=db_stop.latitude, longitude=db_stop.longitude)
 
     return ret_stop

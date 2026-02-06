@@ -1,17 +1,29 @@
-from fastapi import APIRouter, Depends, status, HTTPException
-from sqlmodel import select
+import json
+import os
 
-from ..dependencies import SessionDep, oauth2_scheme
+from platformdirs import user_config_dir
+import requests
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlmodel import SQLModel, select
+
+from app.auth.users import CurrentUser
+from app.models.location import Location
+
+from ..auth.users import oauth2_scheme
+from ..db.db import SessionDep
+from ..helpers import geojson_resp
 from ..models import (
     RecommendationRequest,
-    RecommendationRequestBase,
+    RecommendationRequestCreate,
     RecommendationRequestPublic,
     Suggestion,
     SuggestionPublic,
     User,
 )
-from ..helpers import geojson_resp
 
+RECOMMENDATION_URL = os.getenv(
+    "RECOMMENDATION_ENGINE_URL", "http://127.0.0.1:8001/suggest"
+)
 router = APIRouter(
     prefix="/recommendation",
     tags=["recommendations"],
@@ -19,24 +31,66 @@ router = APIRouter(
 )
 
 
+class RecommendationEngineRequest(SQLModel):
+    username: str
+    avoid_cars: bool
+    avoid_scooters: bool
+    avoid_sea_vessels: bool
+    origin: Location
+    destination: Location
+    minimizing_value: str
+
+    def to_req(self):
+        return {
+            "username": self.username,
+            "avoid_cars": self.avoid_cars,
+            "avoid_scooters": self.avoid_scooters,
+            "avoid_sea_vessels": self.avoid_sea_vessels,
+            "origin": {
+                "lat": self.origin.latitude,
+                "lng": self.origin.longitude,
+            },
+            "destination": {
+                "lat": self.destination.latitude,
+                "lng": self.destination.longitude,
+            },
+            "minimizing_value": self.minimizing_value,
+        }
+
+
 @router.post("/", status_code=status.HTTP_201_CREATED)
 def request_recommendation(
-    recommendation: RecommendationRequestBase, session: SessionDep
+    recommendation: RecommendationRequestCreate,
+    session: SessionDep,
+    current_user: CurrentUser,
 ):
-    db_rec_request = RecommendationRequest.model_validate(recommendation)
+    db_rec_request = RecommendationRequest.model_validate(
+        {
+            **recommendation.model_dump(),
+            "origin_lat": recommendation.origin.to_tuple()[0],
+            "origin_lng": recommendation.origin.to_tuple()[1],
+            "destination_lat": recommendation.destination.to_tuple()[0],
+            "destination_lng": recommendation.destination.to_tuple()[1],
+            "user_id": current_user.username,
+        }
+    )
 
-    db_user = session.exec(
-        select(User).where(User.name == db_rec_request.user_id)
-    ).first()
-
-    if db_user is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
-        )
     session.add(db_rec_request)
     session.commit()
     session.refresh(db_rec_request)
-    return geojson_resp
+    req_body = RecommendationEngineRequest(
+        username=current_user.username,
+        avoid_cars=not recommendation.car,
+        avoid_scooters=not recommendation.escooter,
+        avoid_sea_vessels=not recommendation.sea_vessel,
+        origin=recommendation.origin,
+        destination=recommendation.destination,
+        minimizing_value=recommendation.mode,
+    )
+    resp = requests.post(RECOMMENDATION_URL, json=req_body.to_req())
+    if resp.status_code == 200:
+        return resp.json()
+    raise HTTPException(resp.status_code, resp.json())
 
 
 @router.get("{request_id}", response_model=RecommendationRequestPublic)

@@ -4,18 +4,18 @@ from .recommendation_request import (
     RecommendationRequestPublic,
     RecommendationRequest,
     RecommendationRequestBase,
+    RecommendationRequestCreate,
 )
-from .stop import Stop, StopBase, StopDB
+from .stop import StopCreate, StopPublic, StopBase, Stop
 from .stop_type import StopType
 from .transport_type import TransportType
 from .trip import Trip, TripPublicWithVehicles
 from .trip_vehicle import TripVehicle, TripVehiclePublicWithVehicle
 from .user import User, UserBase
 from .vehicle import (
+    Vehicle,
     VehiclePublic,
     VehicleBase,
-    Vehicle,
-    VehicleCreate,
     VehicleWithEvent,
     VehicleWithAllEvents,
 )
@@ -33,11 +33,10 @@ VehicleWithAllEvents.model_rebuild()
 __all__ = [
     "Location",
     "Point",
+    "StopCreate",
+    "StopPublic",
     "StopBase",
-    "RecommendationRequestBase",
-    "RecommendationRequestPublic",
-    "RecommendationRequest",
-    "StopDB",
+    "Stop",
     "Trip",
     "TripPublicWithVehicles",
     "TripVehicle",
@@ -45,8 +44,8 @@ __all__ = [
     "User",
     "UserBase",
     "VehicleBase",
+    "VehiclePublic",
     "Vehicle",
-    "VehicleCreate",
     "EnvironmentalConditions",
     "Traffic",
     "VehicleEventBase",
@@ -58,6 +57,10 @@ __all__ = [
     "SuggestionPublic",
     "Token",
     "TokenData",
+    "RecommendationRequestBase",
+    "RecommendationRequestPublic",
+    "RecommendationRequest",
+    "RecommendationRequestCreate",
 ]
 
 
@@ -94,23 +97,23 @@ def isSeaVessel(o):
 
 
 def isStop(o):
-    return isinstance(o, Stop)
+    return isinstance(o, StopPublic)
 
 
 def isCarStop(o):
-    return isinstance(o, Stop) and o.type == StopType.CAR_STOP
+    return isinstance(o, StopPublic) and o.type == StopType.CAR_STOP
 
 
 def isBusStop(o):
-    return isinstance(o, Stop) and o.type == StopType.BUS_STOP
+    return isinstance(o, StopPublic) and o.type == StopType.BUS_STOP
 
 
 def isScooterStop(o):
-    return isinstance(o, Stop) and o.type == StopType.SCOOTER_STOP
+    return isinstance(o, StopPublic) and o.type == StopType.SCOOTER_STOP
 
 
 def isSeaVesselStop(o):
-    return isinstance(o, Stop) and o.type == StopType.SEA_VESSEL_STOP
+    return isinstance(o, StopPublic) and o.type == StopType.SEA_VESSEL_STOP
 
 
 if __name__ == "__main__":
@@ -136,7 +139,7 @@ if __name__ == "__main__":
         print(f"{mode!s} = {int(mode)}")
 
     center = Location(latitude=37.9838, longitude=23.7275)
-    s = Stop(id=1, name="Syntagma", type=StopType.BUS_STOP, loc=center)
+    s = StopCreate(name="Syntagma", type=StopType.BUS_STOP, location=center)
     print("Stop", s)
 
     # Vehicle and Modes of Transport
@@ -145,8 +148,7 @@ if __name__ == "__main__":
         print(f"{mode!s} = {int(mode)}")
 
     home = Location(latitude=37.9755, longitude=23.7348)
-    v = VehiclePublic(id=1, type=TransportType.CAR)
-    v.set_location(home)
+    v = VehiclePublic(id=1, type=TransportType.CAR, location=home)
     print("Vehicle in current position:", v)
     work = Location(latitude=37.9838, longitude=23.7275)
     print("Vehicle in new position:    ", v)
