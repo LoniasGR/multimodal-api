@@ -27,7 +27,9 @@ class Vehicle(SQLModel, table=True):
     latitude: float | None = Field(default=None, exclude=True)
     longitude: float | None = Field(default=None, exclude=True)
     type: TransportType
-    trips: list["TripVehicle"] = Relationship(back_populates="vehicle")
+    trips: list["TripVehicle"] = Relationship(
+        back_populates="vehicle", cascade_delete=True
+    )
     # Foreign key to the latest history entry
     latest_event_id: int | None = Field(default=None, foreign_key="vehicleevent.id")
     # Relationship to latest history
