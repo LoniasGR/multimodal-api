@@ -106,7 +106,8 @@ services:
       context: .
       dockerfile: docker/Dockerfile
       args:
-        SOURCE_PATH: "./app"
+        - SOURCE_PATH=./app
+        - REQUIREMENTS_FILE=./requirements.txt
     restart: unless-stopped
     image: multimodal-api-data-management:latest
     container_name: data-management
@@ -122,6 +123,7 @@ services:
       dockerfile: docker/Dockerfile
       args:
         - SOURCE_PATH=./recommendation-service
+        - REQUIREMENTS_FILE=./requirements-recommendation-engine.txt
     restart: unless-stopped
     image: multimodal-api-recommendation-engine:latest
     container_name: recommendation-service
