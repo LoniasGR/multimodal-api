@@ -24,19 +24,23 @@ def read_stops(session: SessionDep):
                 ),
             }
         )
-
-        ret_stop.loc = Location(latitude=db_stop.latitude, longitude=db_stop.longitude)
         ret_stops.append(ret_stop)
     return ret_stops
 
 
 @router.post("/", response_model=StopPublic, status_code=status.HTTP_201_CREATED)
 def create_stop(stop: StopCreate, session: SessionDep):
-    db_stop = Stop.model_validate(stop)
     if stop.location is None:
-        raise ValueError("Stop location must be provided")
-    db_stop.latitude = stop.location.latitude
-    db_stop.longitude = stop.location.longitude
+        raise HTTPException(
+            status.HTTP_400_BAD_REQUEST, "Stop location must be provided"
+        )
+    db_stop = Stop.model_validate(
+        {
+            **stop.model_dump(),
+            "latitude": stop.location.latitude,
+            "longitude": stop.location.longitude,
+        }
+    )
 
     exists = session.exec(select(Stop).where(Stop.name == stop.name)).first()
     if exists:
@@ -48,6 +52,9 @@ def create_stop(stop: StopCreate, session: SessionDep):
     session.commit()
     session.refresh(db_stop)
 
+    if (db_stop.latitude is None) or (db_stop.longitude is None):
+        raise ValueError("latitude and longitude cannot be None")
+
     ret_stop = StopPublic.model_validate(
         {
             **db_stop.model_dump(),
@@ -56,8 +63,5 @@ def create_stop(stop: StopCreate, session: SessionDep):
             ),
         }
     )
-    if (db_stop.latitude is None) or (db_stop.longitude is None):
-        raise ValueError("latitude and longitude cannot be None")
-    ret_stop.loc = Location(latitude=db_stop.latitude, longitude=db_stop.longitude)
 
     return ret_stop
