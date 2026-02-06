@@ -12,9 +12,19 @@ def read_stops(session: SessionDep):
     stops = session.exec(select(Stop)).all()
     ret_stops = []
     for db_stop in stops:
-        ret_stop = StopPublic.model_validate(db_stop)
         if (db_stop.latitude is None) or (db_stop.longitude is None):
-            raise ValueError("latitude and longitude cannot be None")
+            raise HTTPException(
+                status.HTTP_500_INTERNAL_SERVER_ERROR, "stop with empty location found"
+            )
+        ret_stop = StopPublic.model_validate(
+            {
+                **db_stop.model_dump(),
+                "location": Location(
+                    latitude=db_stop.latitude, longitude=db_stop.longitude
+                ),
+            }
+        )
+
         ret_stop.loc = Location(latitude=db_stop.latitude, longitude=db_stop.longitude)
         ret_stops.append(ret_stop)
     return ret_stops
@@ -38,7 +48,14 @@ def create_stop(stop: StopCreate, session: SessionDep):
     session.commit()
     session.refresh(db_stop)
 
-    ret_stop = StopPublic.model_validate(db_stop)
+    ret_stop = StopPublic.model_validate(
+        {
+            **db_stop.model_dump(),
+            "location": Location(
+                latitude=db_stop.latitude, longitude=db_stop.longitude
+            ),
+        }
+    )
     if (db_stop.latitude is None) or (db_stop.longitude is None):
         raise ValueError("latitude and longitude cannot be None")
     ret_stop.loc = Location(latitude=db_stop.latitude, longitude=db_stop.longitude)
