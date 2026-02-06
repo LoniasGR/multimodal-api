@@ -116,7 +116,7 @@ services:
     environment:
       - RECOMMENDATION_ENGINE_URL=http://recommendation-service/suggest
     ports:
-      - "8080:80"
+      - "8000:80"
   recommendation-service:
     build:
       context: .
@@ -129,7 +129,5 @@ services:
     container_name: recommendation-service
     volumes:
       - ./database.db:/code/database.db
-    ports:
-      - "8081:80"
 volumes:
   postgis-data:
