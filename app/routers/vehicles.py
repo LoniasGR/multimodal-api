@@ -1,6 +1,8 @@
 from fastapi import APIRouter, status, HTTPException
 from sqlmodel import select
 
+from app.auth.users import IsAdmin
+
 from ..db.db import SessionDep
 from ..models import (
     VehiclePublic,
@@ -34,9 +36,26 @@ def create_vehicle(vehicle: VehiclePublic, session: SessionDep):
 
 @router.get("/{vehicle_id}", response_model=VehicleWithEvent)
 def read_vehicle(vehicle_id: int, session: SessionDep):
-    db_vehicle = session.exec(select(Vehicle).where(Vehicle.id == vehicle_id)).one()
+    db_vehicle = session.exec(select(Vehicle).where(Vehicle.id == vehicle_id)).first()
+    if db_vehicle is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "vehicle not found")
 
     return db_vehicle
+
+
+@router.delete("/{vehicle_id}", status_code=status.HTTP_200_OK)
+def delete_vehicle(vehicle_id: int, session: SessionDep, is_admin: IsAdmin):
+    if not is_admin:
+        raise HTTPException(
+            status.HTTP_401_UNAUTHORIZED, "Only admins can delete vehicles"
+        )
+
+    db_vehicle = session.exec(select(Vehicle).where(Vehicle.id == vehicle_id)).first()
+    if db_vehicle is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "vehicle not found")
+    session.delete(db_vehicle)
+    session.commit()
+    return
 
 
 @router.get("/{vehicle_id}/history", response_model=VehicleWithAllEvents)
