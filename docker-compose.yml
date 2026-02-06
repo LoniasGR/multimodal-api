@@ -68,7 +68,7 @@ services:
       - POSTGRES_DBNAME=gis # Here it's important to keep the same name as the one configured inside ops_settings_docker.yml
       - ALLOW_IP_RANGE=0.0.0.0/0
     ports:
-      - 5432:5432
+      - 5432
     healthcheck:
       test: ["CMD-SHELL", "pg_isready", "-d", "${POSTGRES_DB}"]
       interval: 10s
@@ -105,13 +105,29 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile
+      args:
+        SOURCE_PATH: "./app"
     restart: unless-stopped
     image: multimodal-api-data-management:latest
     container_name: data-management
     volumes:
       - ./database.db:/code/database.db
+    environment:
+      - RECOMMENDATION_ENGINE_URL=http://recommendation-service/suggest
     ports:
-      - "80:80"
-
+      - "8080:80"
+  recommendation-service:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+      args:
+        - SOURCE_PATH=./recommendation-service
+    restart: unless-stopped
+    image: multimodal-api-recommendation-engine:latest
+    container_name: recommendation-service
+    volumes:
+      - ./database.db:/code/database.db
+    ports:
+      - "8081:80"
 volumes:
   postgis-data:
