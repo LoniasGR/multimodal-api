@@ -1,7 +1,5 @@
-import json
 import os
 
-from platformdirs import user_config_dir
 import requests
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import SQLModel, select
@@ -11,7 +9,6 @@ from app.models.location import Location
 
 from ..auth.users import oauth2_scheme
 from ..db.db import SessionDep
-from ..helpers import geojson_resp
 from ..models import (
     RecommendationRequest,
     RecommendationRequestCreate,
