@@ -41,6 +41,7 @@ class RecommendationRequest(SQLModel):
 
 @app.post("/suggest", response_model=dict)
 def create_suggestion(rr: RecommendationRequest, session: SessionDep):
+    print(rr)
     weather_conditions = WeatherConditions(isRaining=False, isWindy=False)
     traffic_conditions = TrafficConditions([])
     start = Point("START", loc=rr.origin)
