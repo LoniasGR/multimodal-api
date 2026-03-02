@@ -71,8 +71,14 @@ def authenticate_user(password: str, user: User):
 
 
 def is_admin(user: CurrentUser):
-    return user.role == "ADMIN"
+    if user.role != "ADMIN":
+        raise HTTPException(
+            status.HTTP_401_UNAUTHORIZED,
+            "Only admins are allowed to perform this action",
+        )
 
 
-IsAdmin = Annotated[bool, Depends(is_admin)]
+authenticated_dependency = Depends(get_current_user)
+admin_dependency = Depends(is_admin)
+IsAdmin = Annotated[None, Depends(is_admin)]
 Oauth2PasswordRequestFormDep = Annotated[OAuth2PasswordRequestForm, Depends()]

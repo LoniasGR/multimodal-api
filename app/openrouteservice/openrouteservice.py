@@ -1,9 +1,8 @@
 import openrouteservice
 from openrouteservice.directions import directions as ors_directions
 
-from ..models import TransportType, Location
-
 from ..config import ORS_URL
+from ..models import Location, TransportType
 
 client = openrouteservice.Client(base_url=ORS_URL)
 
@@ -15,8 +14,7 @@ def directions(
     try:
         dirs = ors_directions(client, coords, profile=profile, format=format)
     except Exception as e:
-        print(f"Fetching directions failed: {e}")
-        return None
+        raise Exception(f"Fetching directions failed: {e}")
     # Summary only works with geojson format
 
     if format == "geojson" and output == "summary":

@@ -1,7 +1,6 @@
 from datetime import datetime
 from enum import StrEnum
 
-from pydantic import computed_field
 from sqlmodel import Field, Relationship, SQLModel
 
 from .location import Location
@@ -23,6 +22,13 @@ class RecommendationMode(StrEnum):
     Sea_Vessel_Distance = "se_vessel_distance"
 
 
+class TransportPreferences(SQLModel):
+    walk: bool
+    car: bool
+    escooter: bool
+    sea_vessel: bool
+
+
 class RecommendationRequestBase(SQLModel):
     mode: RecommendationMode
     walk: bool
@@ -31,9 +37,38 @@ class RecommendationRequestBase(SQLModel):
     sea_vessel: bool
 
 
-class RecommendationRequestCreate(RecommendationRequestBase):
+class RecommendationRequestCreate(SQLModel):
     origin: Location
     destination: Location
+    transport_preferences: TransportPreferences
+    mode: RecommendationMode
+
+
+class RecommendationEngineRequest(SQLModel):
+    username: str
+    avoid_cars: bool
+    avoid_scooters: bool
+    avoid_sea_vessels: bool
+    origin: Location
+    destination: Location
+    minimizing_value: str
+
+    def to_req(self):
+        return {
+            "username": self.username,
+            "avoid_cars": self.avoid_cars,
+            "avoid_scooters": self.avoid_scooters,
+            "avoid_sea_vessels": self.avoid_sea_vessels,
+            "origin": {
+                "lat": self.origin.latitude,
+                "lng": self.origin.longitude,
+            },
+            "destination": {
+                "lat": self.destination.latitude,
+                "lng": self.destination.longitude,
+            },
+            "minimizing_value": self.minimizing_value,
+        }
 
 
 class RecommendationRequest(RecommendationRequestBase, table=True):

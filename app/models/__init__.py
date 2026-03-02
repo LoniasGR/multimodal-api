@@ -5,6 +5,7 @@ from .recommendation_request import (
     RecommendationRequest,
     RecommendationRequestBase,
     RecommendationRequestCreate,
+    RecommendationEngineRequest,
 )
 from .stop import StopCreate, StopPublic, StopBase, Stop
 from .stop_type import StopType
@@ -61,6 +62,7 @@ __all__ = [
     "RecommendationRequestPublic",
     "RecommendationRequest",
     "RecommendationRequestCreate",
+    "RecommendationEngineRequest",
 ]
 
 
@@ -130,7 +132,7 @@ if __name__ == "__main__":
     # Point
     print("\nPoint:")
     loc_home = Location(latitude=37.9838, longitude=23.7275)  # Athens
-    home = Point(name="Home", loc=loc_home)
+    home = Point(name="Home", location=loc_home)
     print("Point:", home)
 
     # Stop and Stop Types

@@ -1,14 +1,20 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, Query, status
+from fastapi.responses import JSONResponse
 from sqlmodel import select
 
 from ..db.db import SessionDep
+from ..auth.users import admin_dependency
 from ..models import StopCreate, Stop, Location, StopPublic
+from ..geojson.geojson import generate_poi_geojson
 
 router = APIRouter(prefix="/stops", tags=["stops"])
 
 
 @router.get("/", response_model=list[StopPublic])
-def read_stops(session: SessionDep):
+def read_stops(
+    session: SessionDep,
+    geojson: bool = Query(False, description="Return GeoJSON FeatureCollection"),
+):
     stops = session.exec(select(Stop)).all()
     ret_stops = []
     for db_stop in stops:
@@ -25,10 +31,20 @@ def read_stops(session: SessionDep):
             }
         )
         ret_stops.append(ret_stop)
+    if geojson:
+        return JSONResponse(
+            content=generate_poi_geojson(ret_stops),
+            media_type="application/geo+json",
+        )
     return ret_stops
 
 
-@router.post("/", response_model=StopPublic, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/",
+    response_model=StopPublic,
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[admin_dependency],
+)
 def create_stop(stop: StopCreate, session: SessionDep):
     if stop.location is None:
         raise HTTPException(
@@ -65,3 +81,15 @@ def create_stop(stop: StopCreate, session: SessionDep):
     )
 
     return ret_stop
+
+
+@router.delete(
+    "/{stop_id}", status_code=status.HTTP_200_OK, dependencies=[admin_dependency]
+)
+def delete_stop(stop_id: int, session: SessionDep):
+    db_stop = session.exec(select(Stop).where(Stop.id == stop_id)).first()
+    if db_stop is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "stop not found")
+    session.delete(db_stop)
+    session.commit()
+    return

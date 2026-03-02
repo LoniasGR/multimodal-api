@@ -1,11 +1,11 @@
 import os
 
+import geojson
 import requests
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlmodel import SQLModel, select
+from sqlmodel import select
 
 from app.auth.users import CurrentUser
-from app.models.location import Location
 
 from ..auth.users import oauth2_scheme
 from ..db.db import SessionDep
@@ -13,9 +13,9 @@ from ..models import (
     RecommendationRequest,
     RecommendationRequestCreate,
     RecommendationRequestPublic,
+    RecommendationEngineRequest,
     Suggestion,
     SuggestionPublic,
-    User,
 )
 
 RECOMMENDATION_URL = os.getenv(
@@ -26,33 +26,6 @@ router = APIRouter(
     tags=["recommendations"],
     dependencies=[Depends(oauth2_scheme)],
 )
-
-
-class RecommendationEngineRequest(SQLModel):
-    username: str
-    avoid_cars: bool
-    avoid_scooters: bool
-    avoid_sea_vessels: bool
-    origin: Location
-    destination: Location
-    minimizing_value: str
-
-    def to_req(self):
-        return {
-            "username": self.username,
-            "avoid_cars": self.avoid_cars,
-            "avoid_scooters": self.avoid_scooters,
-            "avoid_sea_vessels": self.avoid_sea_vessels,
-            "origin": {
-                "lat": self.origin.latitude,
-                "lng": self.origin.longitude,
-            },
-            "destination": {
-                "lat": self.destination.latitude,
-                "lng": self.destination.longitude,
-            },
-            "minimizing_value": self.minimizing_value,
-        }
 
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
@@ -69,6 +42,10 @@ def request_recommendation(
             "destination_lat": recommendation.destination.to_tuple()[0],
             "destination_lng": recommendation.destination.to_tuple()[1],
             "user_id": current_user.username,
+            "walk": recommendation.transport_preferences.walk,
+            "car": recommendation.transport_preferences.car,
+            "escooter": recommendation.transport_preferences.escooter,
+            "sea_vessel": recommendation.transport_preferences.sea_vessel,
         }
     )
 
@@ -77,17 +54,32 @@ def request_recommendation(
     session.refresh(db_rec_request)
     req_body = RecommendationEngineRequest(
         username=current_user.username,
-        avoid_cars=not recommendation.car,
-        avoid_scooters=not recommendation.escooter,
-        avoid_sea_vessels=not recommendation.sea_vessel,
+        avoid_cars=not recommendation.transport_preferences.car,
+        avoid_scooters=not recommendation.transport_preferences.escooter,
+        avoid_sea_vessels=not recommendation.transport_preferences.sea_vessel,
         origin=recommendation.origin,
         destination=recommendation.destination,
         minimizing_value=recommendation.mode,
     )
     resp = requests.post(RECOMMENDATION_URL, json=req_body.to_req())
-    if resp.status_code == 200:
-        return resp.json()
-    raise HTTPException(resp.status_code, resp.json())
+    if resp.status_code != 200:
+        raise HTTPException(resp.status_code, resp.json())
+
+    data = resp.json()
+    for trip in data["trips"]:
+        suggestion_db = Suggestion.model_validate(
+            {
+                "id": None,
+                "request_id": db_rec_request.id,
+                "path": geojson.dumps(trip["geojson"]),
+                **trip["properties"],
+            }
+        )
+        session.add(suggestion_db)
+        session.commit()
+        session.refresh(suggestion_db)
+        trip["properties"]["id"] = suggestion_db.id
+    return data
 
 
 @router.get("{request_id}", response_model=RecommendationRequestPublic)
